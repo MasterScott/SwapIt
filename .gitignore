@@ -2,7 +2,7 @@
 # Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
 ################################################################################
 /src/.vs/SwapIt/v14
-/src/MoveToStash/obj/Debug
+/src/SwapIt/obj/Debug
 *.pdb
 *.ini
 /ErrorLog.txt
