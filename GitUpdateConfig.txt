@@ -1,0 +1,9 @@
+Owner: k-Sacr
+Name: SwapIt
+Repository
+
+Ignore:
+src
+.gitignore
+README.md
+config.ini

@@ -1,0 +1,5 @@
+C:\POE\Path of Exile progs\PoEHUD-x64\src\bin\x64\Debug\plugins\SwapIt\src\SwapIt\obj\Debug\SwapIt.csproj.CoreCompileInputs.cache
+C:\POE\Path of Exile progs\PoEHUD-x64\src\bin\x64\Debug\plugins\SwapIt\src\SwapIt\obj\Debug\SwapIt.dll
+C:\POE\Path of Exile progs\PoEHUD-x64\src\bin\x64\Debug\plugins\SwapIt\src\SwapIt\obj\Debug\SwapIt.pdb
+C:\POE\Path of Exile progs\PoEHUD-x64\src\bin\x64\Debug\plugins\SwapIt\SwapIt.dll
+C:\POE\Path of Exile progs\PoEHUD-x64\src\bin\x64\Debug\plugins\SwapIt\SwapIt.pdb

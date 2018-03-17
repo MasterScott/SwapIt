@@ -1,0 +1,13 @@
+﻿################################################################################
+# Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
+################################################################################
+/src/.vs/SwapIt/v14
+/src/MoveToStash/obj/Debug
+*.pdb
+*.ini
+/ErrorLog.txt
+/src/SwapIt/.vs/SwapIt/v14/.suo
+
+/src/packages/Newtonsoft.Json.10.0.2
+/Newtonsoft.Json.xml
+/Newtonsoft.Json.dll
