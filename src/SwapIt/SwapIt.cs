@@ -13,7 +13,8 @@ namespace SwapIt
     {
         private IngameState _ingameState;
 
-        private bool _run;
+        private bool _key1;
+        private bool _key2;
 
         private static Vector2 _mousePosition;
         private Vector2 _windowOffset;
@@ -38,13 +39,13 @@ namespace SwapIt
             {
                 if (WinApi.IsKeyDown(Settings.macro1.Value))
                 {
-                    _run = true;
+                    _key1 = true;
                     return;
                 }
 
-                if (_run && !WinApi.IsKeyDown(Settings.macro1.Value))
+                if (_key1 && !WinApi.IsKeyDown(Settings.macro1.Value))
                 {
-                    _run = false;
+                    _key1 = false;
 
                     if (Settings.Record.Value)
                     {
@@ -111,18 +112,18 @@ namespace SwapIt
 
                 if (WinApi.IsKeyDown(Settings.macro2.Value))
                 {
-                    _run = true;
+                    _key2 = true;
                     return;
                 }
 
-                if (_run && !WinApi.IsKeyDown(Settings.macro2.Value))
+                if (_key2 && !WinApi.IsKeyDown(Settings.macro2.Value))
                 {
-                    _run = false;
+                    _key2 = false;
 
                     if (Settings.Record.Value)
                     {
                         _mousePosition = WinApi.GetMousePosition();
-                        if (Settings.m1eX.Value > 0
+                        if (Settings.m2eX.Value > 0
                             && Settings.m2eY.Value > 0
                             && Settings.m2sX.Value > 0
                             && Settings.m2sY.Value > 0)
