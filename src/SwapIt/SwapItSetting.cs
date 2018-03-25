@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
 using PoeHUD.Hud.Settings;
 using PoeHUD.Plugins;
 
@@ -11,49 +13,47 @@ namespace SwapIt
             Enable = true;
             //Speed = new RangeNode<int>(50, 10, 200);
 
-            macro1 = Keys.A;
-            macro2 = Keys.Oem6;
+            StartSwap = Keys.A;
             InvHotkey = Keys.V;
+            AdditKey1 = Keys.ControlKey;
+            AdditKey2 = Keys.LShiftKey;
             Record = false;
             ShowPoint = false;
 
-            m1sX = new RangeNode<float>(-1, -10, 2000);
-            m1sY = new RangeNode<float>(-1, -10, 2000);
-            m1eX = new RangeNode<float>(-1, -10, 2000);
-            m1eY = new RangeNode<float>(-1, -10, 2000);
-            m2sX = new RangeNode<float>(-1, -10, 2000);
-            m2sY = new RangeNode<float>(-1, -10, 2000);
-            m2eX = new RangeNode<float>(-1, -10, 2000);
-            m2eY = new RangeNode<float>(-1, -10, 2000);
+            StartPointX = new RangeNode<float>(-1, -10, 2000);
+            StartPointY = new RangeNode<float>(-1, -10, 2000);
+            EndPointX = new RangeNode<float>(-1, -10, 2000);
+            EndPointY = new RangeNode<float>(-1, -10, 2000);
+            CustomMouseClicks = new List<Tuple<int, int, bool>>();
         }
 
         #region Setting
 
 
-        [Menu("Record")]
+        [Menu("Record", Tooltip = "Enable macro recording. To finish recording, press additional key 1 or 2 and turn it off.")]
         public ToggleNode Record { get; set; }
 
-        [Menu("swap 1 key")]
-        public HotkeyNode macro1 { get; set; }
+        [Menu("Swap key", Tooltip = "Button to activate the swap macro")]
+        public HotkeyNode StartSwap { get; set; }
 
-        [Menu("swap 2 key")]
-        public HotkeyNode macro2 { get; set; }
-
-        [Menu("Set your inv key")]
+        [Menu("Set your inv key", Tooltip = "Button to open your inventory in the game")]
         public HotkeyNode InvHotkey { get; set; }
+
+        [Menu("Additional key 1")]
+        public HotkeyNode AdditKey1 { get; set; }
+
+        [Menu("Additional key 2")]
+        public HotkeyNode AdditKey2 { get; set; }
 
         [Menu("Show points", 10)]
         public ToggleNode ShowPoint { get; set; }
         #endregion
 
-        public RangeNode<float> m1sX { get; set; }
-        public RangeNode<float> m1sY { get; set; }
-        public RangeNode<float> m1eX { get; set; }
-        public RangeNode<float> m1eY { get; set; }
-        public RangeNode<float> m2sX { get; set; }
-        public RangeNode<float> m2sY { get; set; }
-        public RangeNode<float> m2eX { get; set; }
-        public RangeNode<float> m2eY { get; set; }
-
+        public RangeNode<float> StartPointX { get; set; }
+        public RangeNode<float> StartPointY { get; set; }
+        public RangeNode<float> EndPointX { get; set; }
+        public RangeNode<float> EndPointY { get; set; }
+        
+        public List<Tuple<int, int, bool>> CustomMouseClicks { get; set; }
     }
 }

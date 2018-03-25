@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Gma.System.MouseKeyHook;
+using ImGuiNET;
+using PoeHUD.Hud.Menu;
 using PoeHUD.Plugins;
 using PoeHUD.Poe.RemoteMemoryObjects;
 using SharpDX;
@@ -11,198 +16,140 @@ namespace SwapIt
 {
     public class SwapIt : BaseSettingsPlugin<SwapItSetting>
     {
+        private const int Speed = 100;
+
         private IngameState _ingameState;
 
-        private bool _key1;
-        private bool _key2;
-
-        private static Vector2 _mousePosition;
+        private bool _run;
         private Vector2 _windowOffset;
-        private const int Speed = 10;
 
         public override void Initialise()
         {
             base.Initialise();
             _ingameState = GameController.Game.IngameState;
             _windowOffset = GameController.Window.GetWindowRectangle().TopLeft;
+            MenuPlugin.KeyboardMouseEvents.MouseDownExt += KeyboardMouseEvents_MouseDownExt;
+        }
+
+        public override void DrawSettingsMenu()
+        {
+            base.DrawSettingsMenu();
+            if (ImGui.Button("Clear Mouse Clicks"))
+                Settings.CustomMouseClicks.Clear();
+        }
+
+        private void KeyboardMouseEvents_MouseDownExt(object sender, MouseEventExtArgs e)
+        {
+            if (!Settings.Enable)
+                return;
+            if (!Settings.Record)
+                return;
+            if (WinApi.IsKeyDown(Settings.AdditKey1.Value) 
+                || WinApi.IsKeyDown(Settings.AdditKey2.Value)
+                || WinApi.IsKeyDown(Settings.StartSwap.Value))
+            {
+                return;
+            }
+            List<Tuple<int, int, bool>> currentTupple = Settings.CustomMouseClicks;
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    currentTupple.Add(new Tuple<int, int, bool>(e.X, e.Y, true));
+                    break;
+                case MouseButtons.Right:
+                    currentTupple.Add(new Tuple<int, int, bool>(e.X, e.Y, false));
+                    break;
+            }
+
+            foreach (var tuple in currentTupple)
+                LogMessage($"X:{tuple.Item1} Y:{tuple.Item2} Left:{tuple.Item3}", 1);
         }
 
         public override void Render()
         {
             base.Render();
             if (!Settings.Enable)
-            {
                 return;
-            }
-
             try
             {
-                if (WinApi.IsKeyDown(Settings.macro1.Value))
+                if (WinApi.IsKeyDown(Settings.StartSwap.Value)
+                    && WinApi.IsKeyDown(Settings.AdditKey1.Value)
+                    && WinApi.IsKeyDown(Settings.AdditKey2.Value))
                 {
-                    _key1 = true;
+                    _run = true;
                     return;
                 }
 
-                if (_key1 && !WinApi.IsKeyDown(Settings.macro1.Value))
+                if (_run && !WinApi.IsKeyDown(Settings.StartSwap.Value))
                 {
-                    _key1 = false;
-
-                    if (Settings.Record.Value)
-                    {
-                        _mousePosition = WinApi.GetMousePosition();
-                        if (Settings.m1eX.Value > 0
-                            && Settings.m1eY.Value > 0
-                            && Settings.m1sX.Value > 0
-                            && Settings.m1sY.Value > 0)
-                        {
-                            Settings.m1sX.Value = -1;
-                            Settings.m1sY.Value = -1;
-                            Settings.m1eX.Value = -1;
-                            Settings.m1eY.Value = -1;
-                            LogMessage($"RESET m1 point", 5);
-                        }
-
-                        if (Settings.m1sX.Value > 0 && Settings.m1sY.Value > 0)
-                        {
-                            Settings.m1eX.Value = _mousePosition.X;
-                            Settings.m1eY.Value = _mousePosition.Y;
-                            LogMessage($"End m1 point save:{Settings.m1eX.Value},{Settings.m1eY.Value}", 5);
-                            return;
-                        }
-                        else
-                        {
-                            Settings.m1sX.Value = _mousePosition.X;
-                            Settings.m1sY.Value = _mousePosition.Y;
-                            LogMessage($"Start m1 point save: {Settings.m1sX.Value},{Settings.m1sY.Value}", 5);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (Settings.m1eX.Value <= 0
-                            || Settings.m1eY.Value <= 0
-                            || Settings.m1sX.Value <= 0
-                            || Settings.m1sY.Value <= 0)
-                        {
-                            LogMessage($"Set points using the record!", 8);
-                            return;
-                        }
-
-                        var latency = (int) _ingameState.CurLatency;
-                        if (!_ingameState.IngameUi.InventoryPanel.IsVisible)
-                        {
-                            WinApi.KeyPress(Settings.InvHotkey.Value);
-                        }
-                        var mousePosition = WinApi.GetMousePosition();
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m1sX, Settings.m1sY), Speed + latency);
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m1eX, Settings.m1eY), Speed + latency);
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m1sX, Settings.m1sY), Speed + latency);
-                        Thread.Sleep(latency);
-                        if (_ingameState.IngameUi.InventoryPanel.IsVisible)
-                        {
-                            WinApi.KeyPress(Settings.InvHotkey.Value);
-                        }
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPos((int)mousePosition.X, (int)mousePosition.Y);
-                    }
-                }
-
-                if (WinApi.IsKeyDown(Settings.macro2.Value))
-                {
-                    _key2 = true;
-                    return;
-                }
-
-                if (_key2 && !WinApi.IsKeyDown(Settings.macro2.Value))
-                {
-                    _key2 = false;
-
-                    if (Settings.Record.Value)
-                    {
-                        _mousePosition = WinApi.GetMousePosition();
-                        if (Settings.m2eX.Value > 0
-                            && Settings.m2eY.Value > 0
-                            && Settings.m2sX.Value > 0
-                            && Settings.m2sY.Value > 0)
-                        {
-                            Settings.m2sX.Value = -1;
-                            Settings.m2sY.Value = -1;
-                            Settings.m2eX.Value = -1;
-                            Settings.m2eY.Value = -1;
-                            LogMessage($"RESET m2 point", 5);
-                        }
-
-                        if (Settings.m2sX.Value > 0 && Settings.m2sY.Value > 0)
-                        {
-                            Settings.m2eX.Value = _mousePosition.X;
-                            Settings.m2eY.Value = _mousePosition.Y;
-                            LogMessage($"End m2 point save:{Settings.m2eX.Value},{Settings.m2eY.Value}", 5);
-                            return;
-                        }
-                        else
-                        {
-                            Settings.m2sX.Value = _mousePosition.X;
-                            Settings.m2sY.Value = _mousePosition.Y;
-                            LogMessage($"Start m2 point save: {Settings.m2sX.Value},{Settings.m2sY.Value}", 5);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (Settings.m2eX.Value <= 0
-                            || Settings.m2eY.Value <= 0
-                            || Settings.m2sX.Value <= 0
-                            || Settings.m2sY.Value <= 0)
-                        {
-                            LogMessage($"Set points using the record!", 8);
-                            return;
-                        }
-
-                        var latency = (int) _ingameState.CurLatency;
-                        if (!_ingameState.IngameUi.InventoryPanel.IsVisible)
-                        {
-                            WinApi.KeyPress(Settings.InvHotkey.Value);
-                        }
-                        var mousePosition = WinApi.GetMousePosition();
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m2sX, Settings.m2sY), Speed + latency);
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m2eX, Settings.m2eY), Speed + latency);
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPosAndLeftClick(new Vector2(Settings.m2sX, Settings.m2sY), Speed + latency);
-                        Thread.Sleep(latency);
-                        if (_ingameState.IngameUi.InventoryPanel.IsVisible)
-                        {
-                            WinApi.KeyPress(Settings.InvHotkey.Value);
-                        }
-                        Thread.Sleep(latency);
-                        WinApi.SetCursorPos((int)mousePosition.X, (int)mousePosition.Y);
-                    }
+                    _run = false;
+                    DoCustomMouseClicks();
                 }
 
                 if (Settings.ShowPoint)
-                {
-                    var start = new Vector2(Settings.m1sX, Settings.m1sY - _windowOffset.Y);
-                    var end = new Vector2(Settings.m1eX, Settings.m1eY - _windowOffset.Y);
-                    Graphics.DrawLine(start, end, 2, Color.AliceBlue);
-                    Graphics.DrawText($"Start 1 ({start.ToString()})", 14, start, Color.AliceBlue);
-                    Graphics.DrawText($"End 1 ({end.ToString()})", 14, end, Color.AliceBlue);
-
-                    start = new Vector2(Settings.m2sX, Settings.m2sY - _windowOffset.Y);
-                    end = new Vector2(Settings.m2eX, Settings.m2eY - _windowOffset.Y);
-                    Graphics.DrawLine(start, end, 2, Color.Cyan);
-                    Graphics.DrawText($"Start 2 ({start.ToString()})", 14, start, Color.Cyan);
-                    Graphics.DrawText($"End 2 ({end.ToString()})", 14, end, Color.Cyan);
-                }
+                    DrawCustomLines();
             }
             catch (Exception e)
             {
                 File.AppendAllText("log.txt", $"{e.Source} || {e.Message} \n");
                 throw;
             }
+        }
+
+        private void DrawCustomLines()
+        {
+            var colorList = GetGradients(Color.Red, Color.Lime, Settings.CustomMouseClicks.Count);
+            for (var i = 0; i < Settings.CustomMouseClicks.Count; i++)
+            {
+                if (i >= Settings.CustomMouseClicks.Count - 1)
+                    break;
+                Color[] enumerable = colorList as Color[] ?? colorList.ToArray();
+                switch (Settings.CustomMouseClicks[i].Item3)
+                {
+                    case true:
+                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2),
+                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2), 2, enumerable[i]);
+                        break;
+                    case false:
+                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2),
+                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2), 2, enumerable[i]);
+                        break;
+                }
+            }
+        }
+
+        private static IEnumerable<Color> GetGradients(Color start, Color end, int steps)
+        {
+            var stepA = (end.A - start.A) / (steps - 1);
+            var stepR = (end.R - start.R) / (steps - 1);
+            var stepG = (end.G - start.G) / (steps - 1);
+            var stepB = (end.B - start.B) / (steps - 1);
+            for (var i = 0; i < steps; i++)
+                yield return new Color(start.R + stepR * i, start.G + stepG * i, start.B + stepB * i, start.A + stepA * i);
+        }
+
+        private void DoCustomMouseClicks()
+        {
+            var latency = (int) _ingameState.CurLatency;
+            if (!_ingameState.IngameUi.InventoryPanel.IsVisible)
+                WinApi.KeyPress(Settings.InvHotkey.Value);
+            var mousePosition = WinApi.GetMousePosition();
+            foreach (var pointClick in Settings.CustomMouseClicks)
+                if (pointClick.Item3)
+                {
+                    WinApi.SetCursorPosAndLeftClick(new Vector2(pointClick.Item1, pointClick.Item2),
+                        Speed + latency);
+                    Thread.Sleep(latency);
+                }
+                else if (!pointClick.Item3)
+                {
+                    WinApi.SetCursorPosAndRightClick(new Vector2(pointClick.Item1, pointClick.Item2),
+                        Speed + latency);
+                    Thread.Sleep(latency);
+                }
+
+            Thread.Sleep(latency);
+            WinApi.SetCursorPos((int) mousePosition.X, (int) mousePosition.Y);
         }
     }
 
@@ -211,6 +158,9 @@ namespace SwapIt
     public static class WinApi
     {
         public const int ClickDelay = 64;
+
+        private const int KeyeventfExtendedkey = 0x0001;
+        private const int KeyeventfKeyup = 0x0002;
 
         [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -225,9 +175,6 @@ namespace SwapIt
 
         [DllImport("user32.dll", EntryPoint = "keybd_event", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern void keybd_event(byte vk, byte scan, int flags, int extrainfo);
-
-        private const int KeyeventfExtendedkey = 0x0001;
-        private const int KeyeventfKeyup = 0x0002;
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
@@ -255,7 +202,7 @@ namespace SwapIt
             KeyLeftVirtual = 0x25,
             KeyRightVirtual = 0x27,
             KeyEventKeyDown = 0,
-            KeyEventKeyUp = 2,
+            KeyEventKeyUp = 2
         }
 
         public static void SetCursorPosAndLeftClick(Vector2 pos, int extraDelay)
@@ -265,6 +212,15 @@ namespace SwapIt
             mouse_event((int) MouseEventFlags.LeftDown, 0, 0, 0, 0);
             Thread.Sleep(ClickDelay);
             mouse_event((int) MouseEventFlags.LeftUp, 0, 0, 0, 0);
+        }
+
+        public static void SetCursorPosAndRightClick(Vector2 pos, int extraDelay)
+        {
+            SetCursorPos((int) pos.X, (int) pos.Y);
+            Thread.Sleep(extraDelay);
+            mouse_event((int) MouseEventFlags.RightDown, 0, 0, 0, 0);
+            Thread.Sleep(ClickDelay);
+            mouse_event((int) MouseEventFlags.RightUp, 0, 0, 0, 0);
         }
 
         public static Vector2 GetMousePosition()
@@ -280,10 +236,7 @@ namespace SwapIt
             keybd_event((byte) key, 0, KeyeventfExtendedkey | KeyeventfKeyup, 0);
         }
 
-        public static bool IsKeyDown(Keys key)
-        {
-            return GetKeyState((int) key) < 0;
-        }
+        public static bool IsKeyDown(Keys key) => GetKeyState((int) key) < 0;
 
         #endregion
     }
