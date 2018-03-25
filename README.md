@@ -12,3 +12,5 @@ How to use:
 6) turn off recording
 
 swap: Press the key from the settings 
+
+<img src="https://i.imgur.com/xDDLoNL.jpg">
