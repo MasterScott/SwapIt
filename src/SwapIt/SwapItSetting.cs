@@ -33,7 +33,7 @@ namespace SwapIt
         [Menu("Record", Tooltip = "Enable macro recording. To finish recording, press additional key 1 or 2 and turn it off.")]
         public ToggleNode Record { get; set; }
 
-        [Menu("Swap key", Tooltip = "Button to activate the swap macro")]
+        [Menu("Swap key", Tooltip = "To start, press this key + additional 1 and 2 keys")]
         public HotkeyNode StartSwap { get; set; }
 
         [Menu("Set your inv key", Tooltip = "Button to open your inventory in the game")]

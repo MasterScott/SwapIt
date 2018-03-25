@@ -107,12 +107,12 @@ namespace SwapIt
                 switch (Settings.CustomMouseClicks[i].Item3)
                 {
                     case true:
-                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2),
-                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2), 2, enumerable[i]);
+                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2 - _windowOffset.Y),
+                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2 - _windowOffset.Y), 2, enumerable[i]);
                         break;
                     case false:
-                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2),
-                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2), 2, enumerable[i]);
+                        Graphics.DrawLine(new Vector2(Settings.CustomMouseClicks[i].Item1, Settings.CustomMouseClicks[i].Item2 - _windowOffset.Y),
+                            new Vector2(Settings.CustomMouseClicks[i + 1].Item1, Settings.CustomMouseClicks[i + 1].Item2 - _windowOffset.Y), 2, enumerable[i]);
                         break;
                 }
             }
